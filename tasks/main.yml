@@ -1,0 +1,24 @@
+---
+- name: Check if MSC is installed
+  ansible.builtin.command: "which managedsoftwareupdate"
+  register: result
+  failed_when: result.rc != 0
+  changed_when: False
+
+- name: Create self service manifest
+  ansible.builtin.template:
+    src: "SelfServeManifest.j2"
+    dest: "/Library/Managed Installs/manifests/SelfServeManifest"
+  become: yes
+
+- name: Prepare queued (un)installs
+  ansible.builtin.command: "managedsoftwareupdate --checkonly"
+  become: yes
+  register: output
+  changed_when: "'The following items will be' in output.stdout"
+
+- name: Process queued (un)installs
+  ansible.builtin.command: "managedsoftwareupdate --installonly"
+  become: yes
+  register: output
+  changed_when: "'Nothing to install or remove.' not in output.stdout"

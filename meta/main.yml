@@ -1,0 +1,39 @@
+---
+galaxy_info:
+  role_name: msc
+  author: Damien Eversmann
+  description: Managed Software Center optional installs 
+  company: Red Hat
+
+  license: MIT
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: MacOSX
+      versions:
+        - 10.10
+        - 10.11
+        - 10.12
+        - 10.13
+        - 10.14
+        - 10.15
+    - name: macOS
+      versions:
+        - Sierra
+        - High-Sierra
+
+  galaxy_tags:
+    - dotfiles
+    - mac
+    - macos
+    - macosx
+    - munki
+    - managed
+    - software
+    - center
+    - system
+    - configuration
+    - installation
+
+dependencies: []
