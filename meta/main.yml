@@ -12,16 +12,16 @@ galaxy_info:
   platforms:
     - name: MacOSX
       versions:
-        - 10.10
-        - 10.11
-        - 10.12
-        - 10.13
-        - 10.14
-        - 10.15
+        - '10.10'
+        - '10.11'
+        - '10.12'
+        - '10.13'
+        - '10.14'
+        - '10.15'
     - name: macOS
       versions:
-        - Sierra
-        - High-Sierra
+        - 'Sierra'
+        - 'High-Sierra'
 
   galaxy_tags:
     - dotfiles
