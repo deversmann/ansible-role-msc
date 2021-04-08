@@ -10,15 +10,18 @@
     src: "SelfServeManifest.j2"
     dest: "/Library/Managed Installs/manifests/SelfServeManifest"
   become: yes
+  register: manifest
 
 - name: Prepare queued (un)installs
   ansible.builtin.command: "managedsoftwareupdate --checkonly"
   become: yes
   register: output
   changed_when: "'The following items will be' in output.stdout"
+  when: manifest.changed
 
 - name: Process queued (un)installs
   ansible.builtin.command: "managedsoftwareupdate --installonly"
   become: yes
   register: output
   changed_when: "'Nothing to install or remove.' not in output.stdout"
+  when: manifest.changed

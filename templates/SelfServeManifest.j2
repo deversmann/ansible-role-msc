@@ -2,17 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>managed_installs</key>
-    <array>
+	<key>managed_installs</key>
+{% if msc_installs|length == 0 %}
+	<array/>
+{% else %}
+	<array>
 {% for item in msc_installs %}
-        <string>{{ item }}</string>
+		<string>{{ item }}</string>
 {% endfor %}
-    </array>
-    <key>managed_uninstalls</key>
-    <array>
+	</array>
+{% endif %}
+	<key>managed_uninstalls</key>
+{% if msc_uninstalls|length == 0 %}
+	<array/>
+{% else %}
+	<array>
 {% for item in msc_uninstalls %}
-        <string>{{ item }}</string>
+		<string>{{ item }}</string>
 {% endfor %}
-    </array>
+	</array>
+{% endif %}
 </dict>
 </plist>
