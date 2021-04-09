@@ -1,27 +1,27 @@
 ---
+
 - name: Check if MSC is installed
   ansible.builtin.command: "which managedsoftwareupdate"
   register: result
   failed_when: result.rc != 0
   changed_when: False
 
-- name: Create self service manifest
-  ansible.builtin.template:
-    src: "SelfServeManifest.j2"
-    dest: "/Library/Managed Installs/manifests/SelfServeManifest"
-  become: yes
-  register: manifest
+- name: Extract list of installed apps
+  ansible.builtin.command: plutil -extract "processed_installs" json "/Library/Managed Installs/InstallInfo.plist" -o -
+  register: installed_list
+  changed_when: False
 
-- name: Prepare queued (un)installs
-  ansible.builtin.command: "managedsoftwareupdate --checkonly"
-  become: yes
-  register: output
-  changed_when: "'The following items will be' in output.stdout"
-  when: manifest.changed
+- name: Filter install list
+  ansible.builtin.set_fact:
+    filtered_msc_installs: "{{ msc_installs | difference(installed_list.stdout) }}"
 
-- name: Process queued (un)installs
-  ansible.builtin.command: "managedsoftwareupdate --installonly"
-  become: yes
-  register: output
-  changed_when: "'Nothing to install or remove.' not in output.stdout"
-  when: manifest.changed
+- name: Filter uninstall list
+  ansible.builtin.set_fact:
+    filtered_msc_uninstalls: "{{ msc_uninstalls | intersect(installed_list.stdout) }}"
+
+- name: Count actions
+  ansible.builtin.set_fact:
+    msc_actions_count: "{{ (filtered_msc_installs|length + filtered_msc_uninstalls|length) }}"
+
+- include_tasks: processor.yml
+  when: "msc_actions_count|int > 0"

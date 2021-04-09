@@ -1,0 +1,44 @@
+---
+- name: Prep backup location
+  ansible.builtin.tempfile:
+    state: directory
+  register: tempfile
+
+- name: Backup exitsing manifest
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "/Library/Managed Installs/manifests/SelfServeManifest"
+    dest: "{{ tempfile.path }}/SelfServeManifest"
+  become: yes
+
+- name: Create new self service manifest
+  ansible.builtin.template:
+    src: "SelfServeManifest.j2"
+    dest: "/Library/Managed Installs/manifests/SelfServeManifest"
+  become: yes
+
+- name: Prepare queued (un)installs
+  ansible.builtin.command: "managedsoftwareupdate --checkonly"
+  become: yes
+  register: prepare_output
+  changed_when: "'The following items will be' in prepare_output.stdout"
+
+- name: Process queued (un)installs
+  ansible.builtin.command: "managedsoftwareupdate --installonly"
+  when: prepare_output.changed
+  become: yes
+  register: process_output
+  changed_when: "'Nothing to install or remove.' not in process_output.stdout"
+
+- name: Restore the original manifest contents
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "{{ tempfile.path }}/SelfServeManifest"
+    dest: "/Library/Managed Installs/manifests/SelfServeManifest"
+  become: yes
+
+- name: Delete backups
+  ansible.builtin.file:
+    path: "{{ tempfile.path }}"
+    state: absent
+  become: yes
