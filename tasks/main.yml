@@ -11,12 +11,9 @@
   register: installed_list
   changed_when: False
 
-- name: Filter install list
+- name: Filter lists
   ansible.builtin.set_fact:
     filtered_msc_installs: "{{ msc_installs | difference(installed_list.stdout) }}"
-
-- name: Filter uninstall list
-  ansible.builtin.set_fact:
     filtered_msc_uninstalls: "{{ msc_uninstalls | intersect(installed_list.stdout) }}"
 
 - name: Count actions
