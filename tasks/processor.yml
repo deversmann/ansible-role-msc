@@ -1,15 +1,23 @@
 ---
-- name: Prep backup location
-  ansible.builtin.tempfile:
-    state: directory
-  register: tempfile
+- name: Check for existing SelfServiceManifest
+  ansible.builtin.stat:
+    path: "/Library/Managed Installs/manifests/SelfServeManifest"
+  register: original_manifest
 
-- name: Backup exitsing manifest
-  ansible.builtin.copy:
-    remote_src: yes
-    src: "/Library/Managed Installs/manifests/SelfServeManifest"
-    dest: "{{ tempfile.path }}/SelfServeManifest"
-  become: yes
+- name: Manifest Backup
+  block:
+    - name: Prep backup location
+      ansible.builtin.tempfile:
+        state: directory
+      register: tempfile
+
+    - name: Backup exitsing manifest
+      ansible.builtin.copy:
+        remote_src: yes
+        src: "/Library/Managed Installs/manifests/SelfServeManifest"
+        dest: "{{ tempfile.path }}/SelfServeManifest"
+      become: yes
+  when: original_manifest.stat.exists
 
 - name: Create new self service manifest
   ansible.builtin.template:
@@ -30,15 +38,18 @@
   register: process_output
   changed_when: "'Nothing to install or remove.' not in process_output.stdout"
 
-- name: Restore the original manifest contents
-  ansible.builtin.copy:
-    remote_src: yes
-    src: "{{ tempfile.path }}/SelfServeManifest"
-    dest: "/Library/Managed Installs/manifests/SelfServeManifest"
-  become: yes
+- name: Manifest Restore
+  block:
+    - name: Restore the original manifest contents
+      ansible.builtin.copy:
+        remote_src: yes
+        src: "{{ tempfile.path }}/SelfServeManifest"
+        dest: "/Library/Managed Installs/manifests/SelfServeManifest"
+      become: yes
 
-- name: Delete backups
-  ansible.builtin.file:
-    path: "{{ tempfile.path }}"
-    state: absent
-  become: yes
+    - name: Delete backups
+      ansible.builtin.file:
+        path: "{{ tempfile.path }}"
+        state: absent
+      become: yes
+  when: original_manifest.stat.exists
